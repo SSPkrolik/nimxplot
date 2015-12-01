@@ -48,7 +48,7 @@ proc newPlotXY*(r: Rect, model: ModelXY[float64]): PlotXY =
   result.model = model
   result.init(r)
 
-method draw(mxy: PlotXY, r: Rect) =
+method draw*(mxy: PlotXY, r: Rect) =
   procCall mxy.View.draw(r)
 
   let c = currentContext()
