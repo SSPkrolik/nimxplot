@@ -19,6 +19,23 @@ type PlotXY* = ref object of Control
   scale: tuple[x: float64, y: float64]
   poly: seq[Coord]
 
+proc setModel*(mxy: PlotXY, m: ModelXY) =
+  mxy.model = m
+
+  for point in mxy.model.items():
+    mxy.modelBounds.minx = min(point.x, mxy.modelBounds.minx)
+    mxy.modelBounds.miny = min(point.y, mxy.modelBounds.miny)
+    mxy.modelBounds.maxx = max(point.x, mxy.modelBounds.maxx)
+    mxy.modelBounds.maxy = max(point.y, mxy.modelBounds.maxy)
+
+  mxy.scale.x = (mxy.bounds.width - mxy.boundary * 2) / (mxy.modelBounds.maxx - mxy.modelBounds.minx)
+  mxy.scale.y = (mxy.bounds.height- mxy.boundary * 2) / (mxy.modelBounds.maxy - mxy.modelBounds.miny)
+
+  mxy.poly = @[]
+  for point in mxy.model.items():
+    mxy.poly.add(mxy.boundary + Coord(point.x.float32) * mxy.scale.x)
+    mxy.poly.add(Coord(mxy.bounds.height) - Coord(point.y.float32) * mxy.scale.y - mxy.boundary)
+
 method init(mxy: PlotXY, r: Rect) =
   procCall mxy.Control.init(r)
   mxy.backgroundColor = whiteColor()
@@ -29,19 +46,7 @@ method init(mxy: PlotXY, r: Rect) =
   mxy.boundary = 50.0
   mxy.gridstep = 15.0
 
-  for point in mxy.model.items():
-    mxy.modelBounds.minx = min(point.x, mxy.modelBounds.minx)
-    mxy.modelBounds.miny = min(point.y, mxy.modelBounds.miny)
-    mxy.modelBounds.maxx = max(point.x, mxy.modelBounds.maxx)
-    mxy.modelBounds.maxy = max(point.y, mxy.modelBounds.maxy)
-
-  mxy.scale.x = (r.width - mxy.boundary * 2) / (mxy.modelBounds.maxx - mxy.modelBounds.minx)
-  mxy.scale.y = (r.height- mxy.boundary * 2) / (mxy.modelBounds.maxy - mxy.modelBounds.miny)
-
-  mxy.poly = @[]
-  for point in mxy.model.items():
-    mxy.poly.add(mxy.boundary + Coord(point.x.float32) * mxy.scale.x)
-    mxy.poly.add(Coord(r.height) - Coord(point.y.float32) * mxy.scale.y - mxy.boundary)
+  mxy.setModel(mxy.model)
 
 proc newPlotXY*(r: Rect, model: ModelXY[float64]): PlotXY =
   result.new()
