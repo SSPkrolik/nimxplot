@@ -41,3 +41,5 @@ wnd.addSubview(gxy)
 
 runUntilQuit()
 ```
+
+![example](https://photo1.space.zeo.net/bJk_iA30l3ULLZ0FHic2OQ==/5/1x1/origin/plotxy_example.png/565d/58/6d/565d586dac2a49262f04f0ff-565d586dac2a49262f04f100)
