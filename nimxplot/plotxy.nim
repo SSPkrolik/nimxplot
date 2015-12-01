@@ -12,6 +12,7 @@ type PlotXY* = ref object of Control
 
   boundary*: float32
   gridstep*: float32
+  drawMedian*: bool
 
   model*: ModelXY[float64]
 
@@ -22,19 +23,30 @@ type PlotXY* = ref object of Control
 proc setModel*(mxy: PlotXY, m: ModelXY) =
   mxy.model = m
 
+  mxy.modelBounds.minx = 100000
+  mxy.modelBounds.maxx = -100000
+  mxy.modelBounds.miny = 100000
+  mxy.modelBounds.maxy = -100000
+
+  mxy.scale.x = 0
+  mxy.scale.y = 0
+
+  mxy.poly = @[]
+
   for point in mxy.model.items():
     mxy.modelBounds.minx = min(point.x, mxy.modelBounds.minx)
     mxy.modelBounds.miny = min(point.y, mxy.modelBounds.miny)
     mxy.modelBounds.maxx = max(point.x, mxy.modelBounds.maxx)
     mxy.modelBounds.maxy = max(point.y, mxy.modelBounds.maxy)
 
+  echo mxy.modelBounds
+
   mxy.scale.x = (mxy.bounds.width - mxy.boundary * 2) / (mxy.modelBounds.maxx - mxy.modelBounds.minx)
   mxy.scale.y = (mxy.bounds.height- mxy.boundary * 2) / (mxy.modelBounds.maxy - mxy.modelBounds.miny)
 
-  mxy.poly = @[]
   for point in mxy.model.items():
-    mxy.poly.add(mxy.boundary + Coord(point.x.float32) * mxy.scale.x)
-    mxy.poly.add(Coord(mxy.bounds.height) - Coord(point.y.float32) * mxy.scale.y - mxy.boundary)
+    mxy.poly.add(  mxy.boundary + (Coord(point.x.float32) - mxy.modelBounds.minx) * mxy.scale.x)
+    mxy.poly.add(-(mxy.boundary + (Coord(point.y.float32) - mxy.modelBounds.miny) * mxy.scale.y) + Coord(mxy.bounds.height))
 
 method init(mxy: PlotXY, r: Rect) =
   procCall mxy.Control.init(r)
@@ -45,6 +57,8 @@ method init(mxy: PlotXY, r: Rect) =
   mxy.labelY = "Y"
   mxy.boundary = 50.0
   mxy.gridstep = 15.0
+
+  mxy.drawMedian = true
 
   mxy.setModel(mxy.model)
 
@@ -78,6 +92,10 @@ method draw*(mxy: PlotXY, r: Rect) =
   c.fillColor = blackColor()
   c.strokeColor = blackColor()
   c.strokeWidth = 2
+
+  if mxy.drawMedian:
+    c.strokeColor = newColor(0.0, 1.0, 0.0)
+    c.drawLine(newPoint(mxy.poly[0], mxy.poly[1]), newPoint(mxy.poly[mxy.poly.len() - 2], mxy.poly[mxy.poly.len() - 1]))
 
   if not isNil(mxy.model):
     c.strokeColor = blackColor()
