@@ -20,6 +20,8 @@ type PlotXY* = ref object of Control
   scale: tuple[x: float64, y: float64]
   poly: seq[Coord]
 
+proc modelBounds*(mxy: PlotXY): tuple[minx: float64, maxx: float64, miny: float64, maxy: float64] = mxy.modelBounds
+
 proc setModel*(mxy: PlotXY, m: ModelXY) =
   mxy.model = m
 
@@ -38,8 +40,6 @@ proc setModel*(mxy: PlotXY, m: ModelXY) =
     mxy.modelBounds.miny = min(point.y, mxy.modelBounds.miny)
     mxy.modelBounds.maxx = max(point.x, mxy.modelBounds.maxx)
     mxy.modelBounds.maxy = max(point.y, mxy.modelBounds.maxy)
-
-  echo mxy.modelBounds
 
   mxy.scale.x = (mxy.bounds.width - mxy.boundary * 2) / (mxy.modelBounds.maxx - mxy.modelBounds.minx)
   mxy.scale.y = (mxy.bounds.height- mxy.boundary * 2) / (mxy.modelBounds.maxy - mxy.modelBounds.miny)
@@ -108,6 +108,7 @@ method draw*(mxy: PlotXY, r: Rect) =
     c.fillColor = c.strokeColor
     for i in countup(0, mxy.poly.len()-3, 2):
       c.drawEllipseInRect(newRect(mxy.poly[i] - 3, mxy.poly[i+1] - 3, 6, 6))
+    c.drawEllipseInRect(newRect(mxy.poly[^2] - 3, mxy.poly[^1] - 3, 6, 6))
 
   c.fillColor = blackColor()
   c.strokeColor = blackColor()
