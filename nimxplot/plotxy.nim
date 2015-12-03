@@ -119,6 +119,16 @@ method draw*(mxy: PlotXY, r: Rect) =
   var pt = centerInRect(font.sizeOfString(mxy.title), newRect(0.0, 0.0, r.size.width, mxy.boundary))
   c.drawText(font, pt, mxy.title)
 
+  for i in 0..mxy.gridstep.int:
+    let pt = newPoint(2, r.size.height - mxy.boundary - i.float32 * (r.size.height - mxy.boundary * 2) / mxy.gridstep)
+    let stepValue = (mxy.modelBounds.maxy - mxy.modelBounds.miny) / mxy.gridstep * i.float32 + mxy.modelBounds.miny
+    c.drawText(font, pt, $stepValue.int)
+
+  for i in 0..mxy.gridstep.int:
+    pt = newPoint(mxy.boundary + i.float32 * (r.size.width - mxy.boundary * 2) / mxy.gridstep, r.size.height - mxy.boundary)
+    let stepValue = (mxy.modelBounds.maxx - mxy.modelBounds.minx) / mxy.gridstep * i.float32 + mxy.modelBounds.minx
+    c.drawText(font, pt, $stepValue.int)
+
   ## Draw axes labels
   pt = newPoint(mxy.boundary / 2, mxy.boundary / 2)
   c.drawText(font, pt, mxy.labelY)
