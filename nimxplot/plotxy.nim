@@ -1,5 +1,8 @@
+import strutils
+
 import nimx.context
 import nimx.control
+import nimx.event
 import nimx.font
 
 import dataxy
@@ -15,6 +18,8 @@ type PlotXY* = ref object of Control
   drawMedian*: bool
 
   model*: ModelXY[float64]
+
+  highlightedPoint: int
 
   modelBounds: tuple[minx: float64, maxx: float64, miny: float64, maxy: float64]
   scale: tuple[x: float64, y: float64]
@@ -57,6 +62,8 @@ method init(mxy: PlotXY, r: Rect) =
   mxy.labelY = "Y"
   mxy.boundary = 50.0
   mxy.gridstep = 15.0
+
+  mxy.highlightedPoint = -1
 
   mxy.drawMedian = true
 
@@ -108,6 +115,9 @@ method draw*(mxy: PlotXY, r: Rect) =
       c.strokeColor = newColor(1.0, 0.0, 0.0)
       c.fillColor = c.strokeColor
       for i in countup(0, mxy.poly.len()-3, 2):
+        if mxy.highlightedPoint != -1:
+          if i == mxy.highlightedPoint or i == mxy.highlightedPoint + 1:
+            c.drawEllipseInRect(newRect(mxy.poly[i] - 6, mxy.poly[i+1] - 6, 12, 12))
         c.drawEllipseInRect(newRect(mxy.poly[i] - 3, mxy.poly[i+1] - 3, 6, 6))
       c.drawEllipseInRect(newRect(mxy.poly[^2] - 3, mxy.poly[^1] - 3, 6, 6))
 
@@ -133,5 +143,48 @@ method draw*(mxy: PlotXY, r: Rect) =
   pt = newPoint(mxy.boundary / 2, mxy.boundary / 2)
   c.drawText(font, pt, mxy.labelY)
 
+  if mxy.highlightedPoint > -1:
+    let index: int = (mxy.highlightedPoint.float).int
+    let x = mxy.model[(index / 2).int].x
+    let y = mxy.model[(index / 2).int].y
+    c.drawText(font, newPoint(mxy.poly[index], mxy.poly[index+1] - 20.0), "($#, $#)" % [$x, $y])
+
   pt = newPoint(r.size.width - mxy.boundary * 2, r.size.height - mxy.boundary / 1.5)
   c.drawText(font, pt, mxy.labelX)
+
+#method sendAction*(mxy: PlotXY, e: Event) =
+#  proccall Control(mxy).sendAction(e)
+
+method onMouseDown(mxy: PlotXY, e: var Event): bool =
+  ##
+  let pos = e.localPosition
+  if pos.x < mxy.boundary or pos.x > mxy.bounds.width - mxy.boundary:
+    return true
+  if pos.y < mxy.boundary or pos.y > mxy.bounds.height - mxy.boundary:
+    return true
+
+  let xpart = ((pos.x - mxy.boundary) / (mxy.bounds.width - 2 * mxy.boundary))
+  let ypart = (pos.y / (mxy.bounds.height - 2 * mxy.boundary))
+
+  var hp: Point = newPoint(0.0, 0.0)
+  hp.x = xpart * (mxy.modelBounds.maxx - mxy.modelBounds.minx)
+  hp.y = ypart * (mxy.modelBounds.maxy - mxy.modelBounds.miny)
+
+  for i, v in mxy.model.pairs():
+    if v.x > hp.x:
+      if hp.x - mxy.model[i-1].x < mxy.model[i].x - hp.x:
+        mxy.highlightedPoint = (i - 1) * 2
+      else:
+        mxy.highlightedPoint = i * 2
+      break
+
+  echo mxy.highlightedPoint
+
+  mxy.setNeedsDisplay()
+  return true
+
+method onMouseUp(mxy: PlotXY, e: var Event): bool =
+  ##
+  mxy.highlightedPoint = -1
+  mxy.setNeedsDisplay()
+  return true
