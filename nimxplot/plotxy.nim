@@ -93,22 +93,23 @@ method draw*(mxy: PlotXY, r: Rect) =
   c.strokeColor = blackColor()
   c.strokeWidth = 2
 
-  if mxy.drawMedian:
-    c.strokeColor = newColor(0.0, 1.0, 0.0)
-    c.drawLine(newPoint(mxy.poly[0], mxy.poly[1]), newPoint(mxy.poly[mxy.poly.len() - 2], mxy.poly[mxy.poly.len() - 1]))
-
   if not isNil(mxy.model):
-    c.strokeColor = blackColor()
-    for i in countup(0, mxy.poly.len()-3, 2):
-      c.drawLine(
-        newPoint(mxy.poly[i], mxy.poly[i+1]),
-        newPoint(mxy.poly[i+2], mxy.poly[i+3])
-      )
-    c.strokeColor = newColor(1.0, 0.0, 0.0)
-    c.fillColor = c.strokeColor
-    for i in countup(0, mxy.poly.len()-3, 2):
-      c.drawEllipseInRect(newRect(mxy.poly[i] - 3, mxy.poly[i+1] - 3, 6, 6))
-    c.drawEllipseInRect(newRect(mxy.poly[^2] - 3, mxy.poly[^1] - 3, 6, 6))
+    if mxy.model.len() > 0:
+      if mxy.drawMedian:
+        c.strokeColor = newColor(0.0, 1.0, 0.0)
+        c.drawLine(newPoint(mxy.poly[0], mxy.poly[1]), newPoint(mxy.poly[mxy.poly.len() - 2], mxy.poly[mxy.poly.len() - 1]))
+
+      c.strokeColor = blackColor()
+      for i in countup(0, mxy.poly.len()-3, 2):
+        c.drawLine(
+          newPoint(mxy.poly[i], mxy.poly[i+1]),
+          newPoint(mxy.poly[i+2], mxy.poly[i+3])
+        )
+      c.strokeColor = newColor(1.0, 0.0, 0.0)
+      c.fillColor = c.strokeColor
+      for i in countup(0, mxy.poly.len()-3, 2):
+        c.drawEllipseInRect(newRect(mxy.poly[i] - 3, mxy.poly[i+1] - 3, 6, 6))
+      c.drawEllipseInRect(newRect(mxy.poly[^2] - 3, mxy.poly[^1] - 3, 6, 6))
 
   c.fillColor = blackColor()
   c.strokeColor = blackColor()
