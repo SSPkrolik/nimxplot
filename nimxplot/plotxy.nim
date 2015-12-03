@@ -178,8 +178,6 @@ method onMouseDown(mxy: PlotXY, e: var Event): bool =
         mxy.highlightedPoint = i * 2
       break
 
-  echo mxy.highlightedPoint
-
   mxy.setNeedsDisplay()
   return true
 
