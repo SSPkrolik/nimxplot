@@ -14,10 +14,11 @@ type PlotXY* = ref object of Control
   labelY*: string
 
   boundary*: float32
+  dotSize*: int
   gridstep*: float32
   drawMedian*: bool
 
-  model*: ModelXY[float64]
+  model*: ModelXYColor[float64]
 
   highlightedPoint: int
 
@@ -27,7 +28,7 @@ type PlotXY* = ref object of Control
 
 proc modelBounds*(mxy: PlotXY): tuple[minx: float64, maxx: float64, miny: float64, maxy: float64] = mxy.modelBounds
 
-proc setModel*(mxy: PlotXY, m: ModelXY) =
+proc setModel*(mxy: PlotXY, m: ModelXYColor) =
   mxy.model = m
 
   mxy.modelBounds.minx = 100000
@@ -63,13 +64,15 @@ method init(mxy: PlotXY, r: Rect) =
   mxy.boundary = 50.0
   mxy.gridstep = 15.0
 
+  mxy.dotSize = 4
+
   mxy.highlightedPoint = -1
 
   mxy.drawMedian = true
 
   mxy.setModel(mxy.model)
 
-proc newPlotXY*(r: Rect, model: ModelXY[float64]): PlotXY =
+proc newPlotXY*(r: Rect, model: ModelXYColor[float64]): PlotXY =
   result.new()
   result.model = model
   result.init(r)
@@ -112,14 +115,15 @@ method draw*(mxy: PlotXY, r: Rect) =
           newPoint(mxy.poly[i], mxy.poly[i+1]),
           newPoint(mxy.poly[i+2], mxy.poly[i+3])
         )
-      c.strokeColor = newColor(1.0, 0.0, 0.0)
-      c.fillColor = c.strokeColor
       for i in countup(0, mxy.poly.len()-3, 2):
+        c.strokeColor = mxy.model[(i/2).int].color
+        c.fillColor = c.strokeColor
+
         if mxy.highlightedPoint != -1:
           if i == mxy.highlightedPoint or i == mxy.highlightedPoint + 1:
             c.drawEllipseInRect(newRect(mxy.poly[i] - 6, mxy.poly[i+1] - 6, 12, 12))
-        c.drawEllipseInRect(newRect(mxy.poly[i] - 3, mxy.poly[i+1] - 3, 6, 6))
-      c.drawEllipseInRect(newRect(mxy.poly[^2] - 3, mxy.poly[^1] - 3, 6, 6))
+        c.drawEllipseInRect(newRect(mxy.poly[i] - mxy.dotSize.Coord, mxy.poly[i+1] - mxy.dotSize.Coord, mxy.dotSize.Coord * 2, mxy.dotSize.Coord * 2))
+      c.drawEllipseInRect(newRect(mxy.poly[^2] - mxy.dotSize.Coord, mxy.poly[^1] - mxy.dotSize.Coord, mxy.dotSize.Coord * 2, mxy.dotSize.Coord * 2))
 
   c.fillColor = blackColor()
   c.strokeColor = blackColor()
