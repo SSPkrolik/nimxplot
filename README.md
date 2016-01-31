@@ -30,8 +30,8 @@ wnd.init(newRect(40, 40, 1024, 768))
 
 var gxy = newPlotXY(
   newRect(0, 0, 1024, 768),
-  @[(x: 0.0, y: 0.0), (x: 10.0, y: 10.0), (x: 20.0, y: 10.0),
-    (x: 60.0, y: 300.0), (x: 100.0, y: 200.0)]
+  @[(x: 0.0, y: 0.0, color: blackColor()), (x: 10.0, y: 10.0, color: blackColor()), (x: 20.0, y: 10.0, color: blackColor()),
+    (x: 60.0, y: 300.0, color: blackColor()), (x: 100.0, y: 200.0, color: blackColor())]
 )
 
 gxy.title = "Dependency of Y from X"
